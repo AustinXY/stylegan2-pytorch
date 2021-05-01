@@ -535,6 +535,6 @@ if __name__ == "__main__":
     )
 
     if get_rank() == 0 and wandb is not None and args.wandb:
-        wandb.init(project="lsun car 100k")
+        wandb.init(project="cub")
 
     train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, device)
