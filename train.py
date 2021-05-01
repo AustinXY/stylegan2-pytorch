@@ -11,6 +11,7 @@ from torch.utils import data
 import torch.distributed as dist
 from torchvision import transforms, utils
 from tqdm import tqdm
+from PIL import Image
 
 try:
     import wandb
@@ -30,6 +31,7 @@ from distributed import (
 from op import conv2d_gradfix
 from non_leaking import augment, AdaptiveAugment
 
+# os.environ['PYTHONWARNINGS'] = 'ignore:semaphore_tracker:UserWarning'
 
 def data_sampler(dataset, shuffle, distributed):
     if distributed:
@@ -314,7 +316,13 @@ def train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, devic
                         range=(-1, 1),
                     )
 
-            if i % 50000 == 0 and i != 0:
+                    if wandb and args.wandb:
+                        wandb.log(
+                            {
+                                "sample image": [wandb.Image(Image.open(f"sample/{str(i).zfill(6)}.png").convert("RGB"))],
+                            }
+                        )
+            if i % 10000 == 0 and i != args.start_iter:
                 torch.save(
                     {
                         "g": g_module.state_dict(),
@@ -526,6 +534,6 @@ if __name__ == "__main__":
     )
 
     if get_rank() == 0 and wandb is not None and args.wandb:
-        wandb.init(project="cub")
+        wandb.init(project="lsun car 100k")
 
     train(args, loader, generator, discriminator, g_optim, d_optim, g_ema, device)
